@@ -18,7 +18,7 @@ async def loadModules():
 
 
 async def SylvieOS():
-    APIkey = config.token.discord
+    APIkey = str(config.token.discord)
     if not os.path.isdir("./db"):
         os.mkdir("db")
     async with sylvie:
