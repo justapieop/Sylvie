@@ -3,8 +3,8 @@ from discord.ext import commands, tasks
 import sqlite3 as sql
 import time
 import config
-from module.general import checkPha
-from module.tasksManager import TasksManager
+from modules.general import checkPermission
+from modules.tasksManager import TasksManager
 
 
 class StudyTracker(commands.Cog):
@@ -34,7 +34,7 @@ class StudyTracker(commands.Cog):
 
     @tasks.loop(minutes=1)  # every minute
     async def update_time(self):  # Update time to database
-        voice = self.sylvie.get_channel(config.ID.voice)
+        voice = self.sylvie.get_channel(config.ID.voice_channel)
         if not voice:
             return
 
@@ -57,8 +57,8 @@ class StudyTracker(commands.Cog):
     @commands.Cog.listener()  # Calculate study session
     async def on_voice_state_update(self, member, before, after):
         current_time = time.time()
-        main = self.sylvie.get_channel(config.ID.main)
-        voice = self.sylvie.get_channel(config.ID.voice)
+        main = self.sylvie.get_channel(config.ID.main_channel)
+        voice = self.sylvie.get_channel(config.ID.voice_channel)
 
         if not before.channel and after.channel.id == voice.id:  # join voice
             self.start_time[member.id] = current_time
@@ -70,7 +70,6 @@ class StudyTracker(commands.Cog):
                 await main.send(f"{member.display_name} just grinded for {self.format_time(session)} straight")
 
     # Send all-time leaderboard
-
     @commands.hybrid_command(description="All-time leaderboard")
     async def alltime(self, ctx):
         database, cursor = self.connect_database()
@@ -116,7 +115,7 @@ class StudyTracker(commands.Cog):
 
     # Summarize (Remove weekly time and todolists)
     @commands.hybrid_command(description="[Pha only] Weekly summarize")
-    @checkPha()
+    @checkPermission()
     async def summarize(self, ctx):
         database, cursor = self.connect_database()
         cursor.execute(
